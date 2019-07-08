@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using WindowsInput;
 using WindowsInput.Native;
@@ -11,7 +13,7 @@ namespace Wox.Plugin.Clipboard
     public class Main : IPlugin
     {
         private const int MaxDataCount = 300;
-        private readonly KeyboardSimulator keyboardSimulator = new KeyboardSimulator(new InputSimulator());
+        private readonly InputSimulator inputSimulator = new InputSimulator();
         private PluginInitContext context;
         List<string> dataList = new List<string>();
 
@@ -31,22 +33,15 @@ namespace Wox.Plugin.Clipboard
 
             results.AddRange(displayData.Select(o => new Result
             {
-                Title = o.Trim(),
+                Title = o.Trim().Replace("\r\n", " ").Replace('\n', ' '),
                 IcoPath = "Images\\clipboard.png",
                 Action = c =>
                 {
-                    try
-                    {
-                        System.Windows.Forms.Clipboard.SetText(o);
-                        context.API.HideApp();
-                        keyboardSimulator.ModifiedKeyStroke(VirtualKeyCode.CONTROL, VirtualKeyCode.VK_V);
-                        return true;
-                    }
-                    catch (Exception e)
-                    {
-                        context.API.ShowMsg("Error", e.Message, null);
+                    if (!ClipboardMonitor.ClipboardWrapper.SetText(o))
                         return false;
-                    }
+                    context.API.HideApp();
+                    Task.Delay(50).ContinueWith(t => inputSimulator.Keyboard.ModifiedKeyStroke(VirtualKeyCode.CONTROL, VirtualKeyCode.VK_V));
+                    return true;
                 }
             }).Reverse());
             return results;

@@ -8,5 +8,6 @@
     "Language":"csharp",
     "Website":"https://github.com/qianlifeng/Wox.Plugin.ClipboardManager",
     "ExecuteFileName":"Wox.Plugin.Clipboard.dll",
-	"IcoPath": "Images\\clipboard.png"
+    "IcoPath": "Images\\clipboard.png",
+    "KeepResultOrder": true
 }
